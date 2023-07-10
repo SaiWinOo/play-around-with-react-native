@@ -1,23 +1,61 @@
-import {NavigationContainer} from '@react-navigation/native';
-import {createStackNavigator} from '@react-navigation/stack';
-import React from 'react';
-import 'react-native-gesture-handler';
-import PublicScreen from './src/screens/public/PublicScreen';
-import UserScreen from './src/screens/user/UserScreen';
+import axios from 'axios';
+import React, {useEffect, useState} from 'react';
+import {
+  Modal,
+  Text,
+  View,
+  TouchableOpacity,
+  FlatList,
+  Image,
+  ActivityIndicator,
+} from 'react-native';
 
 const App = () => {
-  const Stack = createStackNavigator();
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+  const fetchProducts = async () => {
+    setLoading(true);
+    let res = await axios.get('https://fakestoreapi.com/products');
+    setProducts(res.data);
+    setLoading(false);
+  };
+  const Item = ({item}) => {
+    return (
+      <View>
+        <Image
+          className="w-[50px] h-[50px]"
+          source={{
+            uri: item.image,
+          }}
+        />
+        <Text>{item.title}</Text>
+      </View>
+    );
+  };
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator
-        screenOptions={{
-          headerShown: false,
-        }}>
-        <Stack.Screen name={'Public'} component={PublicScreen} />
-        <Stack.Screen name={'User'} component={UserScreen} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <View className="h-screen justify-center items-center p-3">
+      <View className="flex flex-row gap-2">
+        <TouchableOpacity onPress={() => setProducts([])}>
+          <Text className="bg-green-400 p-3">Clear Products</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => fetchProducts()}>
+          <Text className="bg-green-400 p-3">Fetch Products</Text>
+        </TouchableOpacity>
+      </View>
+      <View className="mt-3">
+        <ActivityIndicator
+          hidesWhenStopped={true}
+          animating={loading}
+          color={'#00ff00'}
+          size={'large'}
+        />
+      </View>
+      <FlatList data={products} renderItem={Item} />
+    </View>
   );
 };
 
